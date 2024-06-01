@@ -1,12 +1,12 @@
 '''
-This script is to executed from an ArcGIS Python Shell to generate the required files used in Drone Harmony UAS Planning by Toolik GIS
+This script is to be executed from an ArcGIS Python Shell to generate the required files used in Drone Harmony UAS Planning by Toolik GIS
 Developed May 2024, Rachel de Sobrino
 '''
 
 import arcpy
 import os
-import sys
 import argparse
+import shutil
 
 if  __name__ == "__main__":
 
@@ -59,26 +59,13 @@ if  __name__ == "__main__":
     print("\n")
 
     # Cleans up output folder for current run
-    if not os.path.exists(o_dir):
-        os.mkdir(o_dir)
-    for f in os.listdir(o_dir):
-        try:
-            os.remove(os.path.join(o_dir, f))
-        except PermissionError:
-            print("Please manually delete the Outputs directory and try again")
-            sys.exit()
+    shutil.rmtree(o_dir, ignore_errors=True)
+    os.mkdir(o_dir)
 
     #Cleans up temp folder for current run
     temp = os.path.join(cwd, "temp")
-    if not os.path.exists(temp):
-        os.mkdir(temp)
-    for f in os.listdir(temp):
-        try:
-            os.remove(os.path.join(temp, f))
-        # the .gdb usually has a lock and has to be deleted manually
-        except PermissionError:
-            print("Please manually delete the temp directory and try again: ", temp)
-            sys.exit()
+    shutil.rmtree(temp, ignore_errors=True)
+    os.mkdir(temp)
 
     name = os.path.splitext(os.path.basename(aoi))[0].replace(" ", "")
     gdb = os.path.join(temp, name + ".gdb")
@@ -97,7 +84,7 @@ def buffer_aoi(aoi, aoi_buffer, buffered_aoi):
     print("...Buffered AOI file")
     return buff_aoi_shp
 
-# Clip Raster always doesn't like it if the feature class and dem are in different projections but reprojecting the full dem file takes a long time
+# Clip Raster doesn't always like it if the feature class and dem are in different projections but reprojecting the full dem file takes a long time
 def check_projections(aoi, dem):
     aoi_sr = arcpy.Describe(aoi).spatialReference.factoryCode
     dem_sr = arcpy.Describe(dem).spatialReference.factoryCode
@@ -128,6 +115,7 @@ def project_dem(aoi, dem):
     return dem_o
 
 def aoi_shp_to_kml(shp):
+    #shp = arcpy.management.MinimumBoundingGeometry(shp, os.path.join(temp, name + "_MinArea"), "RECTANGLE_BY_AREA")
     lyr = arcpy.management.MakeFeatureLayer(shp, os.path.join(temp, name + "_Buffered"))
     arcpy.conversion.LayerToKML(lyr, os.path.join(o_dir, name + "_" + str(aoi_buffer) + "m" + ".kml"))
     print("...Created .kml from shapefile")
@@ -143,7 +131,4 @@ buffered_aoi_shp = buffer_aoi(buffered_aoi_shp, aoi_buffer, buffered_aoi_for_dem
 
 project_dem(buffered_aoi_shp, dem)
 
-print("\n!!!Please manually delete the temp folder before your next run!!!")
-
-
-
+shutil.rmtree(temp, ignore_errors=True)
