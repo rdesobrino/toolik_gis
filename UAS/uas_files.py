@@ -2,11 +2,11 @@
 This script is to be executed from an ArcGIS Python Shell to generate the required files used in Drone Harmony UAS Planning by Toolik GIS
 Developed May 2024, Rachel de Sobrino
 '''
-
 import arcpy
 import os
 import argparse
 import shutil
+import sys
 
 if  __name__ == "__main__":
 
@@ -39,7 +39,11 @@ if  __name__ == "__main__":
     aoi = args.i
     if aoi == None:
         aoi = find_aoi()
+    name = os.path.splitext(os.path.basename(aoi))[0].replace(" ", "")
     aoi_type = os.path.splitext(aoi)[1]
+    if " " in aoi:
+        os.rename(aoi, os.path.join(os.path.dirname(aoi), name + aoi_type))
+        aoi = os.path.join(os.path.dirname(aoi), name + aoi_type)
 
     o_dir = args.o
     dem = args.d
@@ -65,9 +69,12 @@ if  __name__ == "__main__":
     #Cleans up temp folder for current run
     temp = os.path.join(cwd, "temp")
     shutil.rmtree(temp, ignore_errors=True)
-    os.mkdir(temp)
+    try:
+        os.mkdir(temp)
+    except FileExistsError:
+        print("Please delete the temp folder. Do you have its contents open in ArcGIS?")
+        sys.exit()
 
-    name = os.path.splitext(os.path.basename(aoi))[0].replace(" ", "")
     gdb = os.path.join(temp, name + ".gdb")
     d_name = os.path.splitext(os.path.basename(dem))[0]
 
@@ -80,9 +87,11 @@ if aoi_type != ".shp":
 
 def buffer_aoi(aoi, aoi_buffer, buffered_aoi):
     dist = str(aoi_buffer) + " Meters"
-    buff_aoi_shp = arcpy.analysis.PairwiseBuffer(aoi, buffered_aoi, dist)
+    #buff_aoi_shp = arcpy.analysis.PairwiseBuffer(aoi, buffered_aoi, dist)
+    buff_aoi_shp = arcpy.analysis.GraphicBuffer(aoi, buffered_aoi, dist, "SQUARE", "MITER", 10)
     print("...Buffered AOI file")
     return buff_aoi_shp
+
 
 # Clip Raster doesn't always like it if the feature class and dem are in different projections but reprojecting the full dem file takes a long time
 def check_projections(aoi, dem):
