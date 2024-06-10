@@ -29,9 +29,9 @@ if  __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""Create Files for Drone Harmony PreFlight Planning""")
     parser.add_argument("-i", help=" : KMZ/KML/SHP of target study area")
     parser.add_argument("-o", help=" : Output directory ", default = os.path.join(cwd, "Outputs"))
-    parser.add_argument("-aoi_b", help=" : AOI buffer size (meters)", default = 50)
+    parser.add_argument("-aoi_b", help=" : AOI buffer size (meters)", default = 10)
     parser.add_argument("-d", help=" : dem file", default = "Z:\Toolik\Toolik1\hypsographic\PGC_Arctic_DEM\Mosaic\ArcticDEM_mosaic.vrt")
-    parser.add_argument("-dem_b", help=" : DEM buffer size (meters)", default = 50)
+    parser.add_argument("-dem_b", help=" : DEM buffer size (meters)", default = 10)
     parser.add_argument("-rs", help=" : resolution in meters to resample DEM", default = 0)
     parser.add_argument("-f", help=" : output format: ascii or gtif", default="gtif")
     args = parser.parse_args()
@@ -140,4 +140,4 @@ buffered_aoi_shp = buffer_aoi(buffered_aoi_shp, aoi_buffer, buffered_aoi_for_dem
 
 project_dem(buffered_aoi_shp, dem)
 
-shutil.rmtree(temp, ignore_errors=True)
+#shutil.rmtree(temp, ignore_errors=True)

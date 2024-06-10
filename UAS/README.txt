@@ -17,12 +17,12 @@ OR
 -- all input parameters are optional. If you place the input AOI file in the same location as the script it will detect it.
 -i: path to input AOI as .shp/.kml/.kmz
 -o: output directory
--aoi_b: size in meters to buffer the AOI (this is to ensure result of drone flight includes full AOI after processing). The default is 50m
+-aoi_b: size in meters to buffer the AOI (this is to ensure result of drone flight includes full AOI after processing). The default is 10m
 -d: path to DEM file. Default is PGC's ArcticDEM at 2m resolution: "Z:\Toolik\Toolik1\hypsographic\PGC_Arctic_DEM\Mosaic\ArcticDEM_mosaic.vrt"
--dem_b: size in meters to buffer the DEM around the AOI. The default is 50m.
+-dem_b: size in meters to buffer the DEM around the AOI. The default is 10m.
 -rs: resolution in meters to resample the DEM to.
 -f: desired file format. options are GeoTiff(gtif) and ASCII (ascii). Geotiff is the default. 
 
 Pay attention to the terminal. If you don't provide an AOI or the script doesn't find an AOI in its folder it will ask you for a filepath. Error handling is printed to the terminal.
 
-The output files (a .kml of the flight AOI, buffered by 50m) and a DEM (clipped to the AOI + another 50m, in 4326 WGS 84) will be exported to an \Outputs folder, or wherever you specified. Please delete the temp folder after the script completes (lock files are maintained on .gdbs so it can't be deleted from within the script)
+The output files (a .kml of the flight AOI, buffered by 10m) and a DEM (clipped to the AOI + another 10m, in 4326 WGS 84) will be exported to an \Outputs folder, or wherever you specified. Please delete the temp folder after the script completes (lock files are maintained on .gdbs so it can't be deleted from within the script)
