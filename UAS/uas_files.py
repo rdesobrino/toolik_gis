@@ -13,7 +13,7 @@ if  __name__ == "__main__":
     os.chdir(os.path.split(os.path.abspath(__file__))[0])
     cwd = os.getcwd()
 
-    # Looks for kmz, kml, shp in working folder:
+    # Looks for kmz, kml, shp in working folder if not input:
     def find_aoi():
         aoi = False
         for file in os.listdir(cwd):
@@ -87,22 +87,13 @@ if aoi_type != ".shp":
 
 def buffer_aoi(aoi, aoi_buffer, buffered_aoi):
     dist = str(aoi_buffer) + " Meters"
-    #buff_aoi_shp = arcpy.analysis.PairwiseBuffer(aoi, buffered_aoi, dist)
     buff_aoi_shp = arcpy.analysis.GraphicBuffer(aoi, buffered_aoi, dist, "SQUARE", "MITER", 10)
     print("...Buffered AOI file")
     return buff_aoi_shp
 
-
-# Clip Raster doesn't always like it if the feature class and dem are in different projections but reprojecting the full dem file takes a long time
-def check_projections(aoi, dem):
-    aoi_sr = arcpy.Describe(aoi).spatialReference.factoryCode
-    dem_sr = arcpy.Describe(dem).spatialReference.factoryCode
-    if dem_sr != aoi_sr:
-        aoi = arcpy.management.Project(aoi, os.path.join(temp, name + "_" + str(dem_sr)), dem_sr)
-    return aoi
-
 def clip_dem(shp, dem):
-    shp = check_projections(shp, dem)
+    d_sr = arcpy.Describe(dem).spatialReference.factoryCode
+    shp = arcpy.management.Project(shp, os.path.join(temp, name + "_" + str(d_sr)), d_sr)
     clipped_dem = arcpy.Clip_management(dem, "0 0 0 0", os.path.join(temp, d_name + "_clip.tif"), shp, "-999", "ClippingGeometry")
     print("...Clipped DEM to AOI")
     clipped_dem = resample_dem(clipped_dem, res)
@@ -124,12 +115,12 @@ def project_dem(aoi, dem):
     return dem_o
 
 def aoi_shp_to_kml(shp):
-    #shp = arcpy.management.MinimumBoundingGeometry(shp, os.path.join(temp, name + "_MinArea"), "RECTANGLE_BY_AREA")
     lyr = arcpy.management.MakeFeatureLayer(shp, os.path.join(temp, name + "_Buffered"))
     arcpy.conversion.LayerToKML(lyr, os.path.join(o_dir, name + "_" + str(aoi_buffer) + "m" + ".kml"))
     print("...Created .kml from shapefile")
 
 # Call functions
+aoi = arcpy.management.Project(aoi, os.path.join(temp, name + "_UTM_6N"), arcpy.SpatialReference(6335))
 buffered_aoi = os.path.join(temp, name + "_buffered")
 buffered_aoi_shp = buffer_aoi(aoi, aoi_buffer, buffered_aoi)
 
