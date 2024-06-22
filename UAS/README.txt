@@ -3,7 +3,7 @@ PreflightFiles.py
 Rachel de Sobrino
 TFS GIS May 2024
 
-This script creates an output kml and clipped projected DEM for use in Drone Harmony software. It requires a .kml, .kmz, or .shp input file as the AOI.
+This script creates output kmls and a clipped projected DEM for use in Drone Harmony software and DJI Pilot. It requires a .kml, .kmz, or .shp input file as the AOI.
 There are no required input parameters in order to make it click and run.
 
 To run:
@@ -25,4 +25,4 @@ OR
 
 Pay attention to the terminal. If you don't provide an AOI or the script doesn't find an AOI in its folder it will ask you for a filepath. Error handling is printed to the terminal.
 
-The output files (a .kml of the flight AOI, buffered by 10m) and a DEM (clipped to the AOI + another 10m, in 4326 WGS 84) will be exported to an \Outputs folder, or wherever you specified. Please delete the temp folder after the script completes (lock files are maintained on .gdbs so it can't be deleted from within the script)
+The output files (a .kml of the flight AOI, buffered by 10m) and a DEM (clipped to the AOI + another 10m, in 4326 WGS 84) will be exported to \Drone_harmony and \DJI, based on the software requirements.
