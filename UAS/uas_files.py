@@ -1,5 +1,5 @@
 '''
-This script is to be executed from an ArcGIS Python Shell to generate the required files used in Drone Harmony UAS Planning by Toolik GIS
+This script is to be executed from an ArcGIS Python Shell to generate the required files used in Drone Harmony and DJI Pilot UAS Planning by Toolik GIS
 Developed May 2024, Rachel de Sobrino
 '''
 import arcpy
@@ -28,7 +28,7 @@ if  __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="""Create Files for Drone Harmony PreFlight Planning""")
     parser.add_argument("-i", help=" : KMZ/KML/SHP of target study area")
-    parser.add_argument("-o", help=" : Output directory ", default = os.path.join(cwd, "Outputs"))
+    parser.add_argument("-o", help=" : Output directory ", default = cwd)
     parser.add_argument("-aoi_b", help=" : AOI buffer size (meters)", default = 10)
     parser.add_argument("-d", help=" : dem file", default = "Z:\Toolik\Toolik1\hypsographic\PGC_Arctic_DEM\Mosaic\ArcticDEM_mosaic.vrt")
     parser.add_argument("-dem_b", help=" : DEM buffer size (meters)", default = 10)
@@ -46,6 +46,8 @@ if  __name__ == "__main__":
         aoi = os.path.join(os.path.dirname(aoi), name + aoi_type)
 
     o_dir = args.o
+    dh = os.path.join(o_dir, "Drone_Harmony")
+    dji = os.path.join(o_dir, "DJI_Pilot")
     dem = args.d
     aoi_buffer = args.aoi_b
     d_buffer = args.dem_b
@@ -54,7 +56,7 @@ if  __name__ == "__main__":
 
     # Display input parameters
     print("AOI filepath : " , aoi)
-    print("Output directory : " , o_dir)
+    print("Output directories : " , dh, "; ", dji)
     print("Output format: ", f_type)
     print("AOI Buffer Size : " , aoi_buffer)
     print("DEM : " , dem)
@@ -62,18 +64,15 @@ if  __name__ == "__main__":
     print("Resampling: ", res)
     print("\n")
 
-    # Cleans up output folder for current run
-    shutil.rmtree(o_dir, ignore_errors=True)
-    os.mkdir(o_dir)
-
-    #Cleans up temp folder for current run
+    # Cleans up output and temp folders for current run
     temp = os.path.join(cwd, "temp")
-    shutil.rmtree(temp, ignore_errors=True)
-    try:
-        os.mkdir(temp)
-    except FileExistsError:
-        print("Please delete the temp folder. Do you have its contents open in ArcGIS?")
-        sys.exit()
+    for dir in [dh, dji, temp]:
+        shutil.rmtree(dir, ignore_errors=True)
+        try:
+            os.mkdir(dir)
+        except FileExistsError:
+            print("Please delete ", dir, " Do you have its contents open in ArcGIS?")
+            sys.exit()
 
     gdb = os.path.join(temp, name + ".gdb")
     d_name = os.path.splitext(os.path.basename(dem))[0]
@@ -107,19 +106,20 @@ def resample_dem(dem, res):
 def project_dem(aoi, dem):
     dem = clip_dem(aoi, dem)
     sr = arcpy.SpatialReference(4326)
-    dem_o = arcpy.management.ProjectRaster(dem, os.path.join(o_dir, d_name + "_" + str(d_buffer) + "m_buffered.tif"), sr)
+    dem_o = arcpy.management.ProjectRaster(dem, os.path.join(dh, d_name + "_" + str(d_buffer) + "m_buffered.tif"), sr)
     print("...Reprojected DEM to WGS84: 4326")
     if f_type == "ascii":
-        arcpy.conversion.RasterToASCII(dem_o, os.path.join(o_dir, d_name + "_" + str(d_buffer) + "m_buffered.asc"))
+        arcpy.conversion.RasterToASCII(dem_o, os.path.join(dh, d_name + "_" + str(d_buffer) + "m_buffered.asc"))
         print("...Converted DEM to ASCII")
     return dem_o
 
 def aoi_shp_to_kml(shp):
     lyr = arcpy.management.MakeFeatureLayer(shp, os.path.join(temp, name + "_Buffered"))
-    arcpy.conversion.LayerToKML(lyr, os.path.join(o_dir, name + "_" + str(aoi_buffer) + "m" + ".kml"))
-    print("...Created .kml from shapefile")
+    arcpy.conversion.LayerToKML(lyr, os.path.join(dh, name + "_" + str(aoi_buffer) + "m" + ".kml"))
+    arcpy.conversion.LayerToKML(lyr, os.path.join(dji, name + "_" + str(aoi_buffer) + "m" + ".kml"))
+    print("...Created .kml for Drone Harmony")
 
-# Call functions
+# Call arcpy functions
 aoi = arcpy.management.Project(aoi, os.path.join(temp, name + "_UTM_6N"), arcpy.SpatialReference(6335))
 buffered_aoi = os.path.join(temp, name + "_buffered")
 buffered_aoi_shp = buffer_aoi(aoi, aoi_buffer, buffered_aoi)
@@ -131,4 +131,32 @@ buffered_aoi_shp = buffer_aoi(buffered_aoi_shp, aoi_buffer, buffered_aoi_for_dem
 
 project_dem(buffered_aoi_shp, dem)
 
-#shutil.rmtree(temp, ignore_errors=True)
+# Creating kml that will make DJI happy
+xml = os.path.join(dji, name + "_" + str(aoi_buffer) + "m" + ".xml")
+txt = os.path.join(dji, name + "_" + str(aoi_buffer) + "m" + ".txt")
+os.rename(os.path.join(dji, name + "_" + str(aoi_buffer) + "m" + ".kml"), xml)
+os.rename(xml, txt)
+with open(txt, "r") as file:
+    text = file.read()
+    start = text.find("<coordinates>") + len("</coordinates")
+    end = text.find("</coordinates")
+    coords = (text[start:end])
+
+ref_kml = shutil.copy2("Z:\_Drone_Info\Preflight_Processing\sample_dji.kml", os.path.join(dji, name + "_dji.kml"))
+ref_xml = os.path.join(dji, name + "_dji.xml")
+ref_txt = os.path.join(dji, name + "_dji.txt")
+os.rename(ref_kml, ref_xml)
+os.rename(ref_xml, ref_txt)
+
+with open(ref_txt, "r+") as file:
+    text = file.read()
+    start = text.find("<coordinates>") + len("</coordinates")
+    end = text.find("</coordinates")
+    copy = text[end:]
+    file.seek(start)
+    file.write(coords)
+    file.write(copy)
+
+os.rename(ref_txt, ref_kml)
+print("...Created kml for DJI Pilot")
+os.remove(txt)
