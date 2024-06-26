@@ -132,31 +132,39 @@ buffered_aoi_shp = buffer_aoi(buffered_aoi_shp, aoi_buffer, buffered_aoi_for_dem
 project_dem(buffered_aoi_shp, dem)
 
 # Creating kml that will make DJI happy
+def add_placemark(file, coords):
+    with open("Z:\_Drone_Info\Preflight_Processing\\add_placemark.txt", "r") as ref:
+        placemark = ref.read()
+    start = placemark.find("<name>") + len("<name>")
+    copy = placemark[placemark.find("</name>"):]
+    placemark = placemark[:start]+(name)+(copy)
+    start = placemark.find("<coordinates>") + len("<coordiantes>")
+    copy = placemark[placemark.find("</coordinates>"):]
+    placemark = placemark[:start]+(coords)+(copy)
+    with open(file, "r+") as file:
+        text = file.read()
+        start = text.find("<Document>") + len("</Document>")
+        file.seek(start)
+        file.write(placemark)
+        file.write("</Document> \n </kml>")
+
 xml = os.path.join(dji, name + "_" + str(aoi_buffer) + "m" + ".xml")
 txt = os.path.join(dji, name + "_" + str(aoi_buffer) + "m" + ".txt")
 os.rename(os.path.join(dji, name + "_" + str(aoi_buffer) + "m" + ".kml"), xml)
 os.rename(xml, txt)
+
 with open(txt, "r") as file:
     text = file.read()
-    start = text.find("<coordinates>") + len("</coordinates")
-    end = text.find("</coordinates")
-    coords = (text[start:end])
+    places = text.count("</Placemark>")
+    end = 0
+    for i in range(places):
+        new_txt = shutil.copy2("Z:\_Drone_Info\Preflight_Processing\dji_kml_format.txt",
+                               os.path.join(dji, name + "_dji" + str(i) +".txt"))
+        start = text.find("<coordinates>", end) + len("</coordinates")
+        end = text.find("</coordinates", start)
+        add_placemark(new_txt, text[start:end])
 
-ref_kml = shutil.copy2("Z:\_Drone_Info\Preflight_Processing\sample_dji.kml", os.path.join(dji, name + "_dji.kml"))
-ref_xml = os.path.join(dji, name + "_dji.xml")
-ref_txt = os.path.join(dji, name + "_dji.txt")
-os.rename(ref_kml, ref_xml)
-os.rename(ref_xml, ref_txt)
-
-with open(ref_txt, "r+") as file:
-    text = file.read()
-    start = text.find("<coordinates>") + len("</coordinates")
-    end = text.find("</coordinates")
-    copy = text[end:]
-    file.seek(start)
-    file.write(coords)
-    file.write(copy)
-
-os.rename(ref_txt, ref_kml)
+for i in range(places):
+    os.rename(os.path.join(dji, name + "_dji" + str(i) +".txt"), os.path.join(dji, name + "_dji" + str(i) +".kml"))
 print("...Created kml for DJI Pilot")
 os.remove(txt)
