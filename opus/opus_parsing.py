@@ -1,41 +1,38 @@
-'''
+"""
 This script is for use by ToolikGIS in post-processing GPS data with OPUS to reduce repetitive motion injuries by GIS analysts when copying and pasting data.
 241014 Rd
-'''
-
-## TODO suck it up and parse out cors bases
+"""
 
 import os
 import argparse
 from datetime import datetime
 
-if  __name__ == "__main__":
+if __name__ == "__main__":
 
     os.chdir(os.path.split(os.path.abspath(__file__))[0])
     cwd = os.getcwd()
 
-    parser = argparse.ArgumentParser(description="""Read OPUS outputs and format for Toolik GIS average spreadsheets.""")
+    parser = argparse.ArgumentParser(description="""Read OPUS outputs from eml folder and output for Toolik GIS average spreadsheets.""")
     parser.add_argument("-i", help=" : input folder of .eml files for each OPUS output", default = os.path.join(cwd, "eml"))
-    parser.add_argument("-name", help=" : Name for output spreadsheet: ",
+    parser.add_argument("-name", help=" : optional name for output spreadsheet",
                         default="OPUS_Coordinates_" + datetime.today().strftime('%Y%m%d'))
 
-    parser.add_argument("-o", help=" : Output spreadsheet ", default = os.path.join(cwd, "OPUS_Coordinates_" + datetime.today().strftime('%Y%m%d') + ".csv"))
-
+    parser.add_argument("-o", help=" : output spreadsheet filepath", default = os.path.join(cwd, "OPUS_Coordinates_" + datetime.today().strftime('%Y%m%d') + ".csv"))
 
     args = parser.parse_args()
     name = args.name
     emls = args.i
-    csv = args.o
-    if not os.path.exists(os.path.join(cwd, "txt")):
-        txts = os.mkdir(os.path.join(cwd, "txt"))
+    if name:
+        csv = os.path.join(cwd, name + ".csv")
+    else:
+        csv = args.o
     out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used"]
 
     for file in os.listdir(emls):
 
-        if not "aborting" in file:
+        if not "aborting" in file: # only search successful opuses
             with open(os.path.join(emls, file), "r") as eml:
                 lines = eml.readlines()
-
                 text = "\t".join(lines)
 
                 date = text[text.find("START: ")+len("START: "):text.find("START: ")+len("START: ")+10]
@@ -49,9 +46,13 @@ if  __name__ == "__main__":
 
                 o_search = text[text.find("ORTHO HGT:") + len("ORTHO HGT:"):].split(" ")
                 ortho = [char[:-3] for char in o_search if char != ''][0]
-                cors = ""
 
-                row = [date, name, easting, northing, ortho, cors]
+                c_search = text[text.find("PID       DESIGNATION                        LATITUDE    LONGITUDE DISTANCE(m)") + len("PID       DESIGNATION                        LATITUDE    LONGITUDE DISTANCE(m)"):].split("\n")
+                cors = ""
+                for line in c_search[1:4]:
+                    cors += line.split(" ")[1] + " "
+
+                row = [date, name, easting, northing, ortho, cors[:-1]]
                 out_lines.append(",".join(row))
 
     try:
@@ -63,8 +64,9 @@ if  __name__ == "__main__":
         with open(os.path.join(cwd, datetime.now().strftime('%Y%m%d_%H%M%S') + ".csv"), "w") as f:
             blah = "\n".join(out_lines)
             f.write(blah)
-        print("I'll forgive you. Output is here: ", os.path.join(cwd, datetime.now().strftime('%Y%m%d_%H%M%S') + ".csv"))
+        print("Output is here instead: ", os.path.join(cwd, datetime.now().strftime('%Y%m%d_%H%M%S') + ".csv"))
 
+    #prints to command line for copy paste
     for row in out_lines:
         p_row = ""
         row = row.split(",")
