@@ -15,6 +15,7 @@ input = arcpy.GetParameterAsText(0)
 wgs = ";".join([arcpy.GetParameterAsText(1), "Z:\Toolik\Toolik1\hypsographic\PGC_Arctic_DEM\ArcticDEM.vrt pgc"])
 neon = ""
 fp = arcpy.GetParameterAsText(2)
+yr = arcpy.GetParameterAsText(3)
 
 name = os.path.basename(input).split(".")[0]
 arcpy.AddMessage(name)
@@ -61,9 +62,15 @@ selection = arcpy.management.SelectLayerByLocation(
 arcpy.management.CopyFeatures(selection, "DEMs")
 
 fp = []
-with arcpy.da.SearchCursor("DEMs", ['Filepath']) as cursor:
+with arcpy.da.SearchCursor("DEMs", ['Filepath', 'Year']) as cursor:
     for row in cursor:
-        fp.append(os.path.dirname(row[0]))
+        try:
+            # arcpy.AddMessage(os.path.dirname(row[0]))
+            # arcpy.AddMessage(row[1] + " " + yr)
+            if yr == "" or int(row[1]) >= int(yr):
+                fp.append(os.path.dirname(row[0]))
+        except ValueError:
+            arcpy.AddMessage("The file " + os.path.dirname(row[0]) + " was not used because it doesn't follow current naming conventions.")
 
 arcpy.AddMessage(input)
 for dir in fp:
