@@ -26,10 +26,16 @@ if __name__ == "__main__":
         csv = os.path.join(cwd, name + ".csv")
     else:
         csv = args.o
-    out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used"]
+    out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used,RMS,Duration"]
+
+    def duration(start,stop):
+        [h,m,s] = start.split(":")
+        start = float(h) +float(m)/60 + float(s)/3600
+        [h, m, s] = stop.split(":")
+        stop = float(h) + float(m) / 60 + float(s) / 3600
+        return stop - start
 
     for file in os.listdir(emls):
-
         if not "aborting" in file: # only search successful opuses
             with open(os.path.join(emls, file), "r") as eml:
                 lines = eml.readlines()
@@ -52,9 +58,20 @@ if __name__ == "__main__":
                 for line in c_search[1:4]:
                     cors += line.split(" ")[1] + " "
 
-                row = [date, name, easting, northing, ortho, cors[:-1]]
-                out_lines.append(",".join(row))
+                rms_search = text[text.find("RMS:") + len("RMS:"):].split(" ")
+                rms = [char for char in rms_search if char != ''][0].strip()[:-3]
 
+                start_search = text[text.find("START:") + len("START:"):].split(" ")
+                start = [char for char in start_search if char != ''][1]
+                stop_search = text[text.find("STOP:") + len("START:"):].split(" ")
+                stop = [char for char in stop_search if char != ''][1]
+                dur = str(round(duration(start,stop),3))
+                if dur == '23.983':
+                    dur = '24'
+
+                row = [date, name, easting, northing, ortho, cors[:-1],rms,dur]
+                out_lines.append(",".join(row))
+        else: print("ABORTED:    ", file)
     try:
         with open(csv, "w") as f:
             blah = "\n".join(out_lines)
