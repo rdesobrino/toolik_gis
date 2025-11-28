@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     os.chdir(os.path.split(os.path.abspath(__file__))[0])
     cwd = os.getcwd()
-
+    ## all args optional -looks in /eml folder for emls
     parser = argparse.ArgumentParser(description="""Read OPUS outputs from eml folder and output for Toolik GIS average spreadsheets.""")
     parser.add_argument("-i", help=" : input folder of .eml files for each OPUS output", default = os.path.join(cwd, "eml"))
     parser.add_argument("-name", help=" : optional name for output spreadsheet",
@@ -28,13 +28,14 @@ if __name__ == "__main__":
         csv = args.o
     out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used,RMS,Duration"]
 
+    ## returns hour length from start and stop time
     def duration(start,stop):
         [h,m,s] = start.split(":")
         start = float(h) +float(m)/60 + float(s)/3600
         [h, m, s] = stop.split(":")
         stop = float(h) + float(m) / 60 + float(s) / 3600
         return stop - start
-
+    ## search eml doc for relevant info based on keywords
     for file in os.listdir(emls):
         if not "aborting" in file: # only search successful opuses
             with open(os.path.join(emls, file), "r") as eml:
@@ -66,7 +67,7 @@ if __name__ == "__main__":
                 stop_search = text[text.find("STOP:") + len("START:"):].split(" ")
                 stop = [char for char in stop_search if char != ''][1]
                 dur = str(round(duration(start,stop),3))
-                if dur == '23.983':
+                if dur == '23.983':  ## round to 24 because we don't need that decimal business
                     dur = '24'
 
                 row = [date, name, easting, northing, ortho, cors[:-1], rms, dur]
