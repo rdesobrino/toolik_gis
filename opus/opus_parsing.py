@@ -69,7 +69,7 @@ if __name__ == "__main__":
                 if dur == '23.983':
                     dur = '24'
 
-                row = [date, name, easting, northing, ortho, cors[:-1],rms,dur]
+                row = [date, name, easting, northing, ortho, cors[:-1], rms, dur]
                 out_lines.append(",".join(row))
         else: print("ABORTED:    ", file)
     try:
