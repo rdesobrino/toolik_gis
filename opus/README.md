@@ -5,7 +5,7 @@ Upload data to OPUS as normal (remember you can zip files together to upload at 
 ### From Gmail 
 
  - Select all OPUS emails at once, click the three stacked dots in the menu bar, and select `Forward as attachment`. Email the attached to yourself.  
- - Open this new email, click print to PDF in the upper right, and save to the appropriate Z: drive location.
+ - Open this new email, click print to PDF in the upper right, and save to the appropriate archival location.
  - Download all attachments at once. 
  - Unzip the downloaded folder, and drag and drop into the `\eml`folder in your local copy of this repo.
 
@@ -19,10 +19,20 @@ Upload data to OPUS as normal (remember you can zip files together to upload at 
 ```
 python filepath\opus_parsing.py -i path_to_folder_of_emls -n name_of_output_spreadsheet -o path_to\output_spreadsheet.csv
 ```
-all inputs are optional. the script will look for a `\eml` folder and create a spreadsheet based on today's date. The output will also be printed to the terminal (tab-delimited) so that it can be copy and pasted into an average sheet. 
+all inputs are optional. the script will look for a `\eml` folder and create a csv based on today's date. The output will also be printed to the terminal (tab-delimited) so that it can be copy and pasted into an average sheet. 
+
+Fields:
+Date
+Filename
+Easting
+Northing
+Ortho_Hgt 
+CORS_used
+RMS 
+Duration 
 
 
 
 
 
-###### 24/10/14 Rd
+###### 25/11/27 Rd

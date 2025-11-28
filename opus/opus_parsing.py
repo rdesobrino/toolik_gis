@@ -36,7 +36,7 @@ if __name__ == "__main__":
         stop = float(h) + float(m) / 60 + float(s) / 3600
         return stop - start
     ## search eml doc for relevant info based on keywords
-    for file in os.listdir(emls):
+    for file in os.listdir(emls): ##TODO add CRS?
         if not "aborting" in file: # only search successful opuses
             with open(os.path.join(emls, file), "r") as eml:
                 lines = eml.readlines()
