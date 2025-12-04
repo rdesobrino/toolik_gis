@@ -36,6 +36,7 @@ if __name__ == "__main__":
         stop = float(h) + float(m) / 60 + float(s) / 3600
         return stop - start
     ## search eml doc for relevant info based on keywords
+    cors_list = [] ## for tracking TLK2 usage/exclusion
     for file in os.listdir(emls): ##TODO add CRS?
         if not "aborting" in file: # only search successful opuses
             with open(os.path.join(emls, file), "r") as eml:
@@ -71,6 +72,7 @@ if __name__ == "__main__":
                     dur = '24'
 
                 row = [date, name, easting, northing, ortho, cors[:-1], rms, dur]
+                cors_list.append(cors[:-1])
                 out_lines.append(",".join(row))
         else: print("ABORTED:    ", file)
     try:
@@ -92,6 +94,9 @@ if __name__ == "__main__":
             p_row += val + "\t"
         print(p_row)
 
+    for cors in cors_list:        ## As of spring 2025, OPUS does not include TLK2 in solutions unless user-specifies
+        if "TLK2" not in cors:    ## often picking further CORS with higher RMS
+            print("Did you forget to add TLK2 in OPUS?")
 
 
 
