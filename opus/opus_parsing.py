@@ -26,7 +26,7 @@ if __name__ == "__main__":
         csv = os.path.join(cwd, name + ".csv")
     else:
         csv = args.o
-    out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used,RMS,Duration"]
+    out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used,Antenna_Type, Ant_Height,RMS,Duration"]
 
     ## returns hour length from start and stop time
     def duration(start,stop):
@@ -60,6 +60,12 @@ if __name__ == "__main__":
                 for line in c_search[1:4]:
                     cors += line.split(" ")[1] + " "
 
+                type_search = text[text.find("ANT NAME:") + len("ANT NAME:"):].split("              ")
+                ant_type = [char for char in type_search if char != ''][0]
+
+                height_search = text[text.find("ARP HEIGHT:") + len("ARP HEIGHT:"):].split(" ")
+                ant_height = [char for char in height_search if char != ''][0]
+
                 rms_search = text[text.find("RMS:") + len("RMS:"):].split(" ")
                 rms = [char for char in rms_search if char != ''][0].strip()[:-3]
 
@@ -71,7 +77,7 @@ if __name__ == "__main__":
                 if dur == '23.983':  ## round to 24 because we don't need that decimal business
                     dur = '24'
 
-                row = [date, name, easting, northing, ortho, cors[:-1], rms, dur]
+                row = [date, name, easting, northing, ortho, cors[:-1], ant_type, ant_height, rms, dur]
                 cors_list.append(cors[:-1])
                 out_lines.append(",".join(row))
         else: print("ABORTED:    ", file)
