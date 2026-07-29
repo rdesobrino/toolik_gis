@@ -29,7 +29,7 @@ def prowl(wd_path):
         elif os.path.isdir(f) and fname.split("_")[-1] not in "KlAUPPK_PLANNING_IMAGERY_NDVI_IMAGES_PHOTOS_METASHAPE_PLANNING_METADATA_ARCGIS_PRO_ANALYST_NOTES_DOCS_ARCMAP" and not fname.endswith(".FILES") and "PLANNING_FILES" not in fname:
             prowl(wd_path+"/" + fname)
 
-search = ['Z:\Toolik\Project_UAS', r'Z:\2024_Work\UAS_Processing', r'Z:\2023_Work\UAS_Processing', r"Z:\2022_Work\UAS_Flight_Processing", r'Z:\2021_Work\_UAS_Processing', 'Z:\Toolik\Project_UAS']
+search = [r'Z:\2025_Work\UAS_Processing', r'Z:\2024_Work\UAS_Processing', r'Z:\2023_Work\UAS_Processing', r"Z:\2022_Work\UAS_Flight_Processing", r'Z:\2021_Work\_UAS_Processing', r'Z:\Toolik\Project_UAS']
 for folder in search:
     print("Searching " + folder)
     prowl(folder)

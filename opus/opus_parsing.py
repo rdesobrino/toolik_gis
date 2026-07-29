@@ -26,7 +26,7 @@ if __name__ == "__main__":
         csv = os.path.join(cwd, name + ".csv")
     else:
         csv = args.o
-    out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used,RMS,Duration, ,Latitude, Longitude, Ell_hgt"]
+    out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used,Antenna_Type, Ant_Height,RMS,Duration"]
 
     ## returns hour length from start and stop time
     def duration(start,stop):
@@ -36,7 +36,8 @@ if __name__ == "__main__":
         stop = float(h) + float(m) / 60 + float(s) / 3600
         return stop - start
     ## search eml doc for relevant info based on keywords
-    for file in os.listdir(emls):
+    cors_list = [] ## for tracking TLK2 usage/exclusion
+    for file in os.listdir(emls): ##TODO add CRS?
         if not "aborting" in file: # only search successful opuses
             with open(os.path.join(emls, file), "r") as eml:
                 lines = eml.readlines()
@@ -54,22 +55,16 @@ if __name__ == "__main__":
                 o_search = text[text.find("ORTHO HGT:") + len("ORTHO HGT:"):].split(" ")
                 ortho = [char[:-3] for char in o_search if char != ''][0]
 
-                lat_search = text[text.find("LAT:") + len("LAT:") :].split(" ")
-                lat = [char for char in lat_search if char != ""][:3]
-                lat_dd = str(float(lat[0]) + float(lat[1])/60 + float(lat[2])/3600)
-
-                long_search = text[text.find("W LON:") + len("W LON:"):].split(" ")
-                long = [char for char in long_search if char != ""]
-                long_dd = str(-1 * (float(long[0]) + float(long[1])/60 + float(long[2])/3600))
-
-                ell_search = text[text.find("EL HGT:") + len("EL HGT:"):].split(" ")
-                ell = [char for char in ell_search if char != ""][0].split("(")[0]
-                print(ell)
-
                 c_search = text[text.find("PID       DESIGNATION                        LATITUDE    LONGITUDE DISTANCE(m)") + len("PID       DESIGNATION                        LATITUDE    LONGITUDE DISTANCE(m)"):].split("\n")
                 cors = ""
                 for line in c_search[1:4]:
                     cors += line.split(" ")[1] + " "
+
+                type_search = text[text.find("ANT NAME:") + len("ANT NAME:"):].split("              ")
+                ant_type = [char for char in type_search if char != ''][0]
+
+                height_search = text[text.find("ARP HEIGHT:") + len("ARP HEIGHT:"):].split(" ")
+                ant_height = [char for char in height_search if char != ''][0]
 
                 rms_search = text[text.find("RMS:") + len("RMS:"):].split(" ")
                 rms = [char for char in rms_search if char != ''][0].strip()[:-3]
@@ -82,8 +77,8 @@ if __name__ == "__main__":
                 if dur == '23.983':  ## round to 24 because we don't need that decimal business
                     dur = '24'
 
-                row = [date, name, easting, northing, ortho, cors[:-1], rms, dur, "", lat_dd, long_dd, ell]
-                print(row)
+                row = [date, name, easting, northing, ortho, cors[:-1], ant_type, ant_height, rms, dur]
+                cors_list.append(cors[:-1])
                 out_lines.append(",".join(row))
         else: print("ABORTED:    ", file)
     try:
@@ -105,6 +100,9 @@ if __name__ == "__main__":
             p_row += val + "\t"
         print(p_row)
 
+    for cors in cors_list:        ## As of spring 2025, OPUS does not include TLK2 in solutions unless user-specifies
+        if "TLK2" not in cors:    ## often picking further CORS with higher RMS
+            print("Did you forget to add TLK2 in OPUS?")
 
 
 
