@@ -26,7 +26,7 @@ if __name__ == "__main__":
         csv = os.path.join(cwd, name + ".csv")
     else:
         csv = args.o
-    out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used,RMS,Duration"]
+    out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used,RMS,Duration, ,Latitude, Longitude, Ell_hgt"]
 
     ## returns hour length from start and stop time
     def duration(start,stop):
@@ -54,6 +54,18 @@ if __name__ == "__main__":
                 o_search = text[text.find("ORTHO HGT:") + len("ORTHO HGT:"):].split(" ")
                 ortho = [char[:-3] for char in o_search if char != ''][0]
 
+                lat_search = text[text.find("LAT:") + len("LAT:") :].split(" ")
+                lat = [char for char in lat_search if char != ""][:3]
+                lat_dd = str(float(lat[0]) + float(lat[1])/60 + float(lat[2])/3600)
+
+                long_search = text[text.find("W LON:") + len("W LON:"):].split(" ")
+                long = [char for char in long_search if char != ""]
+                long_dd = str(-1 * (float(long[0]) + float(long[1])/60 + float(long[2])/3600))
+
+                ell_search = text[text.find("EL HGT:") + len("EL HGT:"):].split(" ")
+                ell = [char for char in ell_search if char != ""][0].split("(")[0]
+                print(ell)
+
                 c_search = text[text.find("PID       DESIGNATION                        LATITUDE    LONGITUDE DISTANCE(m)") + len("PID       DESIGNATION                        LATITUDE    LONGITUDE DISTANCE(m)"):].split("\n")
                 cors = ""
                 for line in c_search[1:4]:
@@ -70,7 +82,8 @@ if __name__ == "__main__":
                 if dur == '23.983':  ## round to 24 because we don't need that decimal business
                     dur = '24'
 
-                row = [date, name, easting, northing, ortho, cors[:-1], rms, dur]
+                row = [date, name, easting, northing, ortho, cors[:-1], rms, dur, "", lat_dd, long_dd, ell]
+                print(row)
                 out_lines.append(",".join(row))
         else: print("ABORTED:    ", file)
     try:
