@@ -26,7 +26,7 @@ if __name__ == "__main__":
         csv = os.path.join(cwd, name + ".csv")
     else:
         csv = args.o
-    out_lines = ["Date,Filename,Easting,Northing,Ortho_Hgt,CORS_Used,Antenna_Type, Ant_Height,RMS,Duration, , Lat, Long, EL_HGT"]
+    out_lines = ["Date,Filename,Easting,Northing,Ortho_HGT,CORS_Used,Antenna_Type, Ant_Height,RMS,Duration, , Lat, Long, EL_HGT"]
 
     ## returns hour length from start and stop time
     def duration(start,stop):
