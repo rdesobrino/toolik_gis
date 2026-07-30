@@ -1,6 +1,8 @@
 ## adapted from Micasense docs: https://support.micasense.com/hc/en-us/articles/360054297594-How-to-integrate-Emlid-Reach-RTK-with-MicaSense-Sensors
 ##
 ## developed for integration Emlid Reach M2 with Micasense RedEdge-P
+## note, this script is dumb, and does not actually interact with your Micasense photos in any way. It assumes that photos are labeled according to Micasense
+## convention and start at _0001, therefore won't work if your log spans multiple flights. dang it.
 
 import argparse
 import os
@@ -24,15 +26,12 @@ if  __name__ == "__main__":
         img_counter = 0
 
         try:
-            # with open(input_path, 'rb') as f:
-            with open(output_path, 'w') as o:
+            with open(output_path, 'w', newline='') as o:
                 with open(input_path, 'r') as f:
                     text_reader = csv.reader(f, delimiter=' ')
                     for row in text_reader:
                         date_to_img = re.match(r'\d{4}.\d{2}.\d{2}', row[0])
                         if date_to_img:
-                            # g = open(output_path, 'ab')
-                            # text_writer = csv.writer(g, delimiter=' ')
                             text_writer = csv.writer(o, delimiter=',')
                             text_writer.writerow([('IMG_%04d_1.tif' % (img_counter))]
                             + [row[4]]
@@ -41,7 +40,8 @@ if  __name__ == "__main__":
                             img_counter += 1
         except IndexError:
             print("\ndoes your file end in an empty line?")
-            print("processed ", img_counter, "images. ")
+        print("Processed ", img_counter, "images. ")
+
 
     create_image_location_file(input_path, output_path)
 
