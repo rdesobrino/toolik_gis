@@ -31,16 +31,20 @@ if  __name__ == "__main__":
                     text_reader = csv.reader(f, delimiter=' ')
                     for row in text_reader:
                         date_to_img = re.match(r'\d{4}.\d{2}.\d{2}', row[0])
+                        if row[7] != "": ## super lazy way of handling 1000 altitude
+                            alt = row[7]
+                        else:
+                            alt=row[8]
                         if date_to_img:
                             text_writer = csv.writer(o, delimiter=',')
                             text_writer.writerow([('IMG_%04d_1.tif' % (img_counter))]
                             + [row[4]]
                             + [row[5]]
-                            + [row[8]])
+                            + [alt])
                             img_counter += 1
         except IndexError:
             print("\ndoes your file end in an empty line?")
-        print("Processed ", img_counter, "images. ")
+        print("Processed ", img_counter, "events. ")
 
 
     create_image_location_file(input_path, output_path)
