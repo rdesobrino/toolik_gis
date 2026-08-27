@@ -40,7 +40,8 @@ if  __name__ == "__main__":
                             text_writer.writerow([('IMG_%04d_1.tif' % (img_counter))]
                             + [row[4]]
                             + [row[5]]
-                            + [alt])
+                            + [alt]
+                            + ["'" + row[1]])
                             img_counter += 1
         except IndexError:
             print("\ndoes your file end in an empty line?")
